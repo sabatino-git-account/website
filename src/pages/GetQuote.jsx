@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import Hero from "@/components/shared/Hero";
 import SectionHeading from "@/components/shared/SectionHeading";
 import ContactForm from "@/components/shared/ContactForm";
+import { images } from "@/lib/images";
 
-const autoImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/c487bb0e3_generated_6eb43b1c.png";
-const homeImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/936822612_generated_62b1348f.png";
-const businessImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/bfe04bcc5_generated_9cdb5e31.png";
+const autoImg = images.auto;
+const homeImg = images.home;
+const businessImg = images.business;
 
 const quoteTypes = [
   {

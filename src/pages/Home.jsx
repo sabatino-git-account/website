@@ -13,12 +13,13 @@ import FeatureCard from "@/components/shared/FeatureCard";
 import ServiceCard from "@/components/shared/ServiceCard";
 import StatsSection from "@/components/shared/StatsSection";
 import CTASection from "@/components/shared/CTASection";
+import { images } from "@/lib/images";
 
-const heroImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/f5d94608c_generated_071f1d73.png";
-const autoImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/c487bb0e3_generated_6eb43b1c.png";
-const homeImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/936822612_generated_62b1348f.png";
-const businessImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/bfe04bcc5_generated_9cdb5e31.png";
-const boatImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/1fa9fe87e_generated_1b6df7ed.png";
+const heroImg = images.hero;
+const autoImg = images.auto;
+const homeImg = images.home;
+const businessImg = images.business;
+const boatImg = images.boat;
 
 const values = [
   { icon: Shield, title: "Trusted Protection", description: "Over 40 years of safeguarding families and businesses across Massachusetts with reliable, comprehensive coverage." },
@@ -175,7 +176,7 @@ export default function HomePage() {
               className="relative"
             >
               <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/[0.08]">
-                <img src="https://media.base44.com/images/public/6a2c7d39abb365824919975b/81f1648d5_generated_25e36aa7.png" alt="Our team" className="w-full h-auto" />
+                <img src={images.team} alt="Our team" className="w-full h-auto" />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-secondary text-secondary-foreground p-6 rounded-2xl shadow-lg hidden md:block">
                 <p className="font-display text-3xl font-bold">40+</p>

@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here.
 
+## 2026-06-13 — Self-hosted images (full Base44 removal)
+
+### Added
+- **`public/images/`** — 28 images downloaded locally (logo, hero, services, carrier logos)
+- **`src/lib/images.js`** — centralized image path constants
+
+### Changed
+- All pages and layout components now use local `/images/...` paths instead of `media.base44.com` CDN URLs
+- **`index.html`** favicon now points to `/images/logo.png`
+
+### Removed
+- Empty **`base44/`** folder
+- **85 duplicate `* 2.*` files** (macOS Finder copies accidentally created in the project)
+
+### Result
+No Base44 references remain in source code, dependencies, or image hosting.
+
+---
+
 ## 2026-06-13 — Azure deployment fix
 
 ### Changed
@@ -93,6 +112,6 @@ Public website (e.g. sabatino.azurewebsites.net)
 ### Future work
 - [ ] Implement real auth in `src/api/auth.js` and wire `AuthContext.jsx`
 - [ ] Route login/register pages when auth backend is ready
-- [ ] Self-host images (move off `media.base44.com`)
+- [x] Self-host images (moved to `public/images/`)
 - [ ] Connect contact form to email/API backend
 - [x] Custom domain setup documented — configure `www.sabatino-ins.com` in Azure + DNS (see README)

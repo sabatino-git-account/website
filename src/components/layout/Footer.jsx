@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
+import { images } from "@/lib/images";
 
 const quickLinks = [
   { label: "Home", path: "/" },
@@ -34,7 +35,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-5">
               <img
-                src="https://media.base44.com/images/public/6a2c7d39abb365824919975b/c3e9b67de_image-1.png"
+                src={images.logo}
                 alt="Sabatino Insurance"
                 className="w-12 h-12 object-contain mix-blend-screen"
               />

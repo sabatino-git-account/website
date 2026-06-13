@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, AlertCircle, ExternalLink, Search, Phone, Shield, Star, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { images } from "@/lib/images";
 
 const carriers = [
   {
     name: "Safety Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/1f4611120_image.png",
+    logo: images.carriers.safetyInsurance,
     initials: "SI", color: "bg-blue-600",
     phone: "800-951-2100",
     payUrl: "https://www.safetyinsurance.com/myaccount/billpay.pl?guest=1",
@@ -14,7 +15,7 @@ const carriers = [
   },
   {
     name: "MAPFRE Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/acbb69a58_image.png",
+    logo: images.carriers.mapfre,
     initials: "MF", color: "bg-red-600",
     phone: "800-922-8276",
     payUrl: "https://myaccount.mapfreinsurance.com/make-payment",
@@ -22,7 +23,7 @@ const carriers = [
   },
   {
     name: "Liberty Mutual",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/8e91a750f_image.png",
+    logo: images.carriers.libertyMutual,
     initials: "LM", color: "bg-yellow-600",
     phone: "800-290-7933",
     payUrl: "https://ciit-billing-portal.libertymutual.com/express-pay",
@@ -30,7 +31,7 @@ const carriers = [
   },
   {
     name: "Travelers Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/1e9d49186_image.png",
+    logo: images.carriers.travelers,
     initials: "TR", color: "bg-red-700",
     phone: "800-252-4633",
     payUrl: "https://www.travelers.com/pay-your-bill",
@@ -38,7 +39,7 @@ const carriers = [
   },
   {
     name: "Progressive Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/12e23748c_image.png",
+    logo: images.carriers.progressive,
     initials: "PR", color: "bg-blue-500",
     phone: "800-776-4737",
     payUrl: "https://www.progressive.com/rp/login",
@@ -46,7 +47,7 @@ const carriers = [
   },
   {
     name: "Hanover Insurance Group",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/858f0824a_image.png",
+    logo: images.carriers.hanover,
     initials: "HI", color: "bg-slate-700",
     phone: "800-922-8427",
     payUrl: "https://www.hanover.com/pay-your-bill",
@@ -54,7 +55,7 @@ const carriers = [
   },
   {
     name: "Plymouth Rock Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/b6ffc35f2_image.png",
+    logo: images.carriers.plymouthRock,
     initials: "PL", color: "bg-stone-600",
     phone: "844-856-5462",
     payUrl: "https://ci2.plymouthrock.com/qpay/login",
@@ -62,7 +63,7 @@ const carriers = [
   },
   {
     name: "Concord Group Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/b446e738f_image.png",
+    logo: images.carriers.concordGroup,
     initials: "CG", color: "bg-green-700",
     phone: "800-852-3380",
     payUrl: "https://customer.concordgroupinsurance.com/ccp/login",
@@ -70,7 +71,7 @@ const carriers = [
   },
   {
     name: "Quincy Mutual Group",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/8e97c38dd_image.png",
+    logo: images.carriers.quincyMutual,
     initials: "QM", color: "bg-indigo-700",
     phone: "617-472-1000",
     payUrl: "https://www.quincymutual.com/billing.htm",
@@ -78,7 +79,7 @@ const carriers = [
   },
   {
     name: "Safeco Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/ff024949a_image.png",
+    logo: images.carriers.safeco,
     initials: "SC", color: "bg-teal-600",
     phone: "800-332-3226",
     payUrl: "https://www.safeco.com/log-in",
@@ -86,7 +87,7 @@ const carriers = [
   },
   {
     name: "Stillwater Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/5d059a9aa_image.png",
+    logo: images.carriers.stillwater,
     initials: "SW", color: "bg-cyan-700",
     phone: "800-220-1351",
     payUrl: "https://stillwaterinsurance.com/ClientSelfService/",
@@ -94,7 +95,7 @@ const carriers = [
   },
   {
     name: "Utica First Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/2d01c5fa0_image.png",
+    logo: images.carriers.uticaFirst,
     initials: "UF", color: "bg-orange-700",
     phone: "800-388-4642",
     payUrl: "https://www.uticafirst.com/pay-my-bill/",
@@ -102,7 +103,7 @@ const carriers = [
   },
   {
     name: "Providence Mutual",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/28db8f50a_image.png",
+    logo: images.carriers.providenceMutual,
     initials: "PM", color: "bg-violet-700",
     phone: "800-343-3616",
     payUrl: "https://www.mypmfic.com/PayYourBill/FindAccount.do?parameter=getFindAccount",
@@ -110,7 +111,7 @@ const carriers = [
   },
   {
     name: "GEICO",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/2c07ae20b_image.png",
+    logo: images.carriers.geico,
     initials: "GE", color: "bg-blue-700",
     phone: "800-841-3000",
     payUrl: "https://www.geico.com/information/make-a-payment/",
@@ -118,7 +119,7 @@ const carriers = [
   },
   {
     name: "Foremost Insurance",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/043429a8b_image.png",
+    logo: images.carriers.foremost,
     initials: "FO", color: "bg-blue-600",
     phone: "800-527-3905",
     payUrl: "https://www.foremost.com/payonline/",
@@ -126,7 +127,7 @@ const carriers = [
   },
   {
     name: "Berkshire Hathaway Guard",
-    logo: "https://media.base44.com/images/public/6a2c7d39abb365824919975b/d77462f1c_image.png",
+    logo: images.carriers.berkshireHathawayGuard,
     initials: "BG", color: "bg-slate-800",
     phone: "888-230-4675",
     payUrl: "https://policyholder.guard.com/access/",

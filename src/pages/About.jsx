@@ -6,9 +6,10 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import FeatureCard from "@/components/shared/FeatureCard";
 import StatsSection from "@/components/shared/StatsSection";
 import CTASection from "@/components/shared/CTASection";
+import { images } from "@/lib/images";
 
-const aboutImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/fcae128bd_generated_de3b1c7e.png";
-const teamImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/81f1648d5_generated_25e36aa7.png";
+const aboutImg = images.about;
+const teamImg = images.team;
 
 const milestones = [
   { year: "1980s", title: "Founded", description: "Sabatino/Mastrocola Insurance Agency established in Everett, Massachusetts, serving the local community." },

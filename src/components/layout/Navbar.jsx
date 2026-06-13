@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { images } from "@/lib/images";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -57,7 +58,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-18 py-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <img src="https://media.base44.com/images/public/6a2c7d39abb365824919975b/c3e9b67de_image-1.png" alt="Sabatino Insurance" className="w-20 h-20 object-contain" />
+              <img src={images.logo} alt="Sabatino Insurance" className="w-20 h-20 object-contain" />
               <div className="flex flex-col">
                 <span className="font-display text-lg font-semibold text-foreground leading-tight tracking-tight">
                   Sabatino

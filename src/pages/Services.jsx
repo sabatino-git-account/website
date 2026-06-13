@@ -4,15 +4,16 @@ import { CheckCircle2 } from "lucide-react";
 import Hero from "@/components/shared/Hero";
 import SectionHeading from "@/components/shared/SectionHeading";
 import CTASection from "@/components/shared/CTASection";
+import { images } from "@/lib/images";
 
-const autoImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/c487bb0e3_generated_6eb43b1c.png";
-const homeImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/936822612_generated_62b1348f.png";
-const businessImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/bfe04bcc5_generated_9cdb5e31.png";
-const boatImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/1fa9fe87e_generated_1b6df7ed.png";
-const rentersImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/d5b0e1a4a_generated_0c189858.png";
-const condoImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/a0ea25f46_generated_420d026e.png";
-const floodImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/e445cdd49_generated_5db29af9.png";
-const lifeImg = "https://media.base44.com/images/public/6a2c7d39abb365824919975b/872915c21_generated_b14e1784.png";
+const autoImg = images.auto;
+const homeImg = images.home;
+const businessImg = images.business;
+const boatImg = images.boat;
+const rentersImg = images.renters;
+const condoImg = images.condo;
+const floodImg = images.flood;
+const lifeImg = images.life;
 
 const services = [
   {
