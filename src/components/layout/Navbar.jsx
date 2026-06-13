@@ -57,8 +57,16 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-18 py-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center group">
-              <img src={images.logo} alt="Sabatino Insurance" className="h-14 w-auto object-contain" />
+            <Link to="/" className="flex items-center gap-3 group">
+              <img src={images.logoIcon} alt="" aria-hidden="true" className="h-12 w-12 object-contain flex-shrink-0" />
+              <div className="flex flex-col">
+                <span className="font-display text-lg font-semibold text-foreground leading-tight tracking-tight">
+                  Sabatino
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
+                  Insurance Agency
+                </span>
+              </div>
             </Link>
 
             {/* Desktop links */}

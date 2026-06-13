@@ -1,5 +1,6 @@
 export const images = {
   logo: '/images/saba_logo.png',
+  logoIcon: '/images/saba_icon.png',
   hero: '/images/hero.png',
   auto: '/images/auto.png',
   home: '/images/home.png',
