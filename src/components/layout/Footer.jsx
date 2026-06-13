@@ -33,17 +33,13 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-3 mb-5">
+            <Link to="/" className="inline-block mb-5">
               <img
                 src={images.logo}
                 alt="Sabatino Insurance"
-                className="w-12 h-12 object-contain mix-blend-screen"
+                className="h-14 w-auto object-contain"
               />
-              <div>
-                <p className="font-display text-base font-semibold leading-tight tracking-tight">Sabatino</p>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-medium">Insurance Agency</p>
-              </div>
-            </div>
+            </Link>
             <p className="text-sm text-white/50 leading-relaxed mb-5">
               Trusted insurance for Massachusetts families and businesses — for over 40 years.
             </p>
