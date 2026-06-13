@@ -2,6 +2,8 @@
 
 Marketing site for Sabatino/Mastrocola Insurance Agency — built with React, Vite, and Tailwind CSS.
 
+See [CHANGELOG.md](./CHANGELOG.md) for a history of project changes.
+
 ## Prerequisites
 
 - Node.js 24
