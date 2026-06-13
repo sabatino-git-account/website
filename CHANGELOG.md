@@ -95,4 +95,4 @@ Public website (e.g. sabatino.azurewebsites.net)
 - [ ] Route login/register pages when auth backend is ready
 - [ ] Self-host images (move off `media.base44.com`)
 - [ ] Connect contact form to email/API backend
-- [ ] Add custom domain + HTTPS in Azure
+- [x] Custom domain setup documented — configure `www.sabatino-ins.com` in Azure + DNS (see README)

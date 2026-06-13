@@ -60,3 +60,55 @@ Azure Deployment Center already created the workflow and GitHub secrets when you
 The startup command serves your static files and handles SPA routing (`/about`, `/services`, etc.).
 
 `staticwebapp.config.json` is copied into `dist/` during the build for routing fallback support.
+
+### Custom domain (e.g. `www.sabatino-ins.com`)
+
+No code changes are required. Configure DNS and Azure as follows.
+
+**1. Azure Portal → Web App `sabatino` → Custom domains → Add custom domain**
+
+- Enter: `www.sabatino-ins.com`
+- Azure will show the DNS records you need to create
+
+**2. At your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.)**
+
+Add a **CNAME** record:
+
+| Type | Name / Host | Value / Points to |
+|------|-------------|-------------------|
+| CNAME | `www` | `sabatino.azurewebsites.net` |
+
+**3. Back in Azure → validate and add the domain**
+
+Azure checks the CNAME, then attaches the domain to your Web App.
+
+**4. Enable HTTPS (free)**
+
+Azure Portal → Custom domains → **Add binding**
+- Select `www.sabatino-ins.com`
+- Choose **App Service Managed Certificate** (free)
+- TLS/SSL type: **SNI SSL**
+
+**5. Optional — redirect root domain to www**
+
+If you also want `sabatino-ins.com` (without `www`) to work:
+
+- Add `sabatino-ins.com` as a second custom domain in Azure, **or**
+- At your registrar, set root (`@`) to forward/redirect to `https://www.sabatino-ins.com`
+
+Root/apex domains (`sabatino-ins.com`) cannot use a simple CNAME on all registrars. Common options:
+- **Redirect** `@` → `www` at the registrar (easiest)
+- **ALIAS/ANAME** record pointing to `sabatino.azurewebsites.net` (Cloudflare, some DNS providers)
+- **A record** to Azure App Service IP (shown in Azure Custom domains blade)
+
+**6. Verify**
+
+After DNS propagates (minutes to 48 hours):
+
+```
+https://www.sabatino-ins.com
+```
+
+should show your site. The `*.azurewebsites.net` URL will still work unless you disable it.
+
+**No app rebuild needed** — the same `dist/` files are served on any domain you attach.
