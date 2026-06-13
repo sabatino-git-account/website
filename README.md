@@ -36,9 +36,18 @@ Auth is not wired up yet. Login/register pages exist but are not routed. When yo
 
 ## Deployment
 
-This is a static SPA. Deploy the `dist/` folder to Azure.
+This is a static SPA. GitHub Actions builds the site and deploys the `dist/` folder to Azure.
 
-### Azure App Service (Web App)
+### How deploy works
+
+1. You push code to `main` on GitHub
+2. GitHub Actions runs `.github/workflows/main_sabatino.yml`
+3. The workflow builds the site with Node 24 (`npm ci` → `npm run build`)
+4. Only the built files in `dist/` are uploaded to Azure Web App `sabatino`
+
+Azure Deployment Center already created the workflow and GitHub secrets when you connected the repo. No publish profile is needed.
+
+### Azure App Service settings
 
 | Setting | Value |
 |---------|--------|
@@ -46,18 +55,6 @@ This is a static SPA. Deploy the `dist/` folder to Azure.
 | Runtime stack | **Node 24 LTS** |
 | Startup command | `npx -y serve -s /home/site/wwwroot -l $PORT --no-clipboard` |
 
-GitHub Actions workflow: `.github/workflows/azure-webapp.yml` (Node 24)
+The startup command serves your static files and handles SPA routing (`/about`, `/services`, etc.).
 
-**Required GitHub secrets:**
-- `AZURE_WEBAPP_NAME` — your Web App name
-- `AZURE_WEBAPP_PUBLISH_PROFILE` — download from Azure Portal → Web App → Deployment Center → Manage publish profile
-
-### Azure Static Web Apps
-
-| Setting | Value |
-|---------|--------|
-| Build | Node 24 |
-| App location | `/` |
-| Output location | `dist` |
-
-`staticwebapp.config.json` handles SPA routing fallback.
+`staticwebapp.config.json` is copied into `dist/` during the build for routing fallback support.

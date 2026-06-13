@@ -13,41 +13,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '24.x'
+          cache: npm
 
-      - name: npm install, build, and test
+      - name: Install, build, and prepare static site
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm ci
+          npm run build
+          cp staticwebapp.config.json dist/
 
-      - name: Upload artifact for deployment job
+      - name: Upload built site for deployment
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download built site from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -55,11 +56,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DA58A3D4D7B54447B74453BAE8A03D10 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D81DFCCFDC884B98BE66FC665EE65BB5 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'sabatino'
-          slot-name: 'Production'
+          app-name: sabatino
+          slot-name: Production
           package: .
-          
