@@ -1,5 +1,3 @@
-# Docs: https://github.com/azure/functions-action
-
 name: Deploy contact API to Azure Function App
 
 on:
@@ -45,14 +43,7 @@ jobs:
         run: cd api && zip -r ../function.zip . -x "*.git*"
 
       - name: Deploy to Azure Functions
-        run: |
-          RG=$(az functionapp list \
-            --query "[?name=='${{ env.AZURE_FUNCTIONAPP_NAME }}'].resourceGroup | [0]" -o tsv)
-          if [ -z "$RG" ]; then
-            echo "Function app not found: ${{ env.AZURE_FUNCTIONAPP_NAME }}"
-            exit 1
-          fi
-          az functionapp deployment source config-zip \
-            --resource-group "$RG" \
-            --name "${{ env.AZURE_FUNCTIONAPP_NAME }}" \
-            --src function.zip
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: function.zip
