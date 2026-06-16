@@ -92,3 +92,11 @@
     @apply bg-background text-foreground font-body;
   }
 }
+
+/* reCAPTCHA v3 badge — keep bottom-right clear for Teams live chat */
+.grecaptcha-badge {
+  left: 14px !important;
+  right: auto !important;
+  bottom: 14px !important;
+  z-index: 40 !important;
+}
