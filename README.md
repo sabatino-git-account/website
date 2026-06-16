@@ -4,6 +4,10 @@ Marketing site for Sabatino/Mastrocola Insurance Agency — built with React, Vi
 
 See [CHANGELOG.md](./CHANGELOG.md) for a history of project changes.
 
+**Documentation:**
+- **[docs/ARCHITECTURE_AND_DEPLOYMENT.md](./docs/ARCHITECTURE_AND_DEPLOYMENT.md)** — Azure setup, contact form, CORS, troubleshooting
+- **[docs/AI_SESSION_CONTEXT.md](./docs/AI_SESSION_CONTEXT.md)** — condensed reference for AI assistants (config checklist, file map, resolved issues)
+
 ## Prerequisites
 
 - Node.js 24
@@ -36,35 +40,19 @@ Static files are output to `dist/`.
 
 Auth is not wired up yet. Login/register pages exist but are not routed. When you add a backend (e.g. Azure AD B2C, Auth0, or a custom API), implement the methods in `src/api/auth.js` and connect `src/lib/AuthContext.jsx`.
 
-## Contact form (SMTP2GO via Azure Functions)
+## Contact form
 
-Form submissions are sent by **`sabatino-contact-api`** (Azure Function). SMTP credentials stay in Azure only — never in the React app.
+Form submissions go to Azure Function **`sabatino-contact-api`**, which sends email via SMTP2GO. Secrets stay in Azure — not in the React app.
 
-### Azure Function App environment variables
+**Required configuration:**
 
-In **sabatino-contact-api → Environment variables → App settings**, confirm these exist:
+1. **Function App → Environment variables** — SMTP settings (`SMTP_*`, `MAIL_FROM`, `MAIL_TO`, `ALLOWED_ORIGIN`, `RECAPTCHA_SECRET_KEY`)
+2. **Function App → API → CORS** — allow `https://www.sabatino-ins.com` and `https://sabatino-ins.com` (required for browser submissions)
+3. **GitHub variables** — `VITE_CONTACT_API_URL`, `VITE_RECAPTCHA_SITE_KEY`, `VITE_GA_MEASUREMENT_ID`
 
-| Name | Example |
-|------|---------|
-| `SMTP_HOST` | `mail.smtp2go.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USER` | your SMTP2GO username |
-| `SMTP_PASSWORD` | your SMTP2GO password |
-| `MAIL_FROM` | verified sender in SMTP2GO |
-| `MAIL_TO` | `info@sabatino-ins.com` |
-| `ALLOWED_ORIGIN` | `https://www.sabatino-ins.com,https://sabatino-ins.com` |
+Deploy workflows: `main_sabatino.yml` (website) and `main_sabatino-contact-api.yml` (API). Both use OIDC from Azure Deployment Center.
 
-### GitHub (website build)
-
-Add a repository **variable** (Settings → Secrets and variables → Actions → Variables):
-
-- `VITE_CONTACT_API_URL` = `https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azurewebsites.net/api/contact`
-
-### GitHub (function deploy)
-
-Add a repository **secret**:
-
-- `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` — download from Function App → Overview → Get publish profile
+Details, diagrams, troubleshooting, and lessons learned: **[docs/ARCHITECTURE_AND_DEPLOYMENT.md](./docs/ARCHITECTURE_AND_DEPLOYMENT.md)**.
 
 ### Local testing
 
@@ -74,7 +62,7 @@ cp api/local.settings.json.example api/local.settings.json
 cd api && npm install && npm start
 ```
 
-In another terminal, copy `.env.example` to `.env.local` and run `npm run dev`.
+Set `VITE_CONTACT_API_URL=http://localhost:7071/api/contact` in `.env.local`, then `npm run dev` in the repo root.
 
 ## Deployment
 

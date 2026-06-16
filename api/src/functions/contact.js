@@ -2,6 +2,23 @@ import { app } from '@azure/functions';
 import nodemailer from 'nodemailer';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^\(\d{3}\) \d{3}-\d{4}$/;
+
+async function verifyRecaptcha(token) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return true;
+
+  if (!token) return false;
+
+  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ secret, response: token }),
+  });
+
+  const result = await response.json();
+  return result.success === true;
+}
 
 function getAllowedOrigins() {
   const raw = process.env.ALLOWED_ORIGIN || 'https://www.sabatino-ins.com';
@@ -55,7 +72,7 @@ function validatePayload(data) {
   if (!email || !EMAIL_PATTERN.test(email) || email.length > 254) return 'Valid email is required.';
   if (!message || message.length > 5000) return 'Message is required.';
   if (company.length > 200) return 'Company name is too long.';
-  if (phone.length > 40) return 'Phone number is too long.';
+  if (phone && !PHONE_PATTERN.test(phone)) return 'Please enter a valid phone number.';
   if (interest.length > 120) return 'Interest value is too long.';
   if (!data.smsConsent) return 'SMS consent is required.';
 
@@ -128,6 +145,11 @@ app.http('contact', {
 
       if (validationError) {
         return jsonResponse(request, 400, { error: validationError });
+      }
+
+      const captchaValid = await verifyRecaptcha(data.captchaToken);
+      if (!captchaValid) {
+        return jsonResponse(request, 400, { error: 'CAPTCHA verification failed. Please try again.' });
       }
 
       const payload = {

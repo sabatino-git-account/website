@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatPhoneInput, isValidPhoneInput } from "@/lib/phone";
 
 const CONTACT_API_URL = import.meta.env.VITE_CONTACT_API_URL;
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const interests = [
   "Auto Insurance",
@@ -23,13 +26,17 @@ const interests = [
 ];
 
 export default function ContactForm() {
+  const recaptchaRef = useRef(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [smsConsent, setSmsConsent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const [form, setForm] = useState({
     name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: ""
   });
+
+  const captchaEnabled = Boolean(RECAPTCHA_SITE_KEY);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,6 +44,16 @@ export default function ContactForm() {
 
     if (!CONTACT_API_URL) {
       setError("Contact form is not configured yet. Please email info@sabatino-ins.com.");
+      return;
+    }
+
+    if (form.phone && !isValidPhoneInput(form.phone)) {
+      setError("Please enter a complete 10-digit phone number.");
+      return;
+    }
+
+    if (captchaEnabled && !captchaToken) {
+      setError("Please complete the CAPTCHA verification.");
       return;
     }
 
@@ -54,6 +71,7 @@ export default function ContactForm() {
           interest: form.interest,
           message: form.message,
           smsConsent,
+          captchaToken,
           _gotcha: form._gotcha,
         }),
       });
@@ -67,6 +85,8 @@ export default function ContactForm() {
       setSubmitted(true);
     } catch (err) {
       setError(err.message || "Failed to send message. Please try again or call (617) 387-7466.");
+      recaptchaRef.current?.reset();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -76,11 +96,17 @@ export default function ContactForm() {
     setSubmitted(false);
     setError("");
     setSmsConsent(false);
+    setCaptchaToken(null);
+    recaptchaRef.current?.reset();
     setForm({ name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: "" });
   };
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhoneChange = (value) => {
+    handleChange("phone", formatPhoneInput(value));
   };
 
   return (
@@ -171,9 +197,12 @@ export default function ContactForm() {
               <Input
                 id="phone"
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
                 placeholder="(617) 555-0123"
+                maxLength={14}
                 value={form.phone}
-                onChange={(e) => handleChange("phone", e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 className="h-11"
               />
             </div>
@@ -202,6 +231,19 @@ export default function ContactForm() {
               onChange={(e) => handleChange("message", e.target.value)}
             />
           </div>
+
+          {captchaEnabled && (
+            <div className="space-y-2">
+              <Label>Verification *</Label>
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={setCaptchaToken}
+                onExpired={() => setCaptchaToken(null)}
+              />
+            </div>
+          )}
+
           <div className="rounded-xl bg-muted/50 border border-border/60 p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Checkbox
@@ -223,7 +265,7 @@ export default function ContactForm() {
           <Button
             type="submit"
             size="lg"
-            disabled={!smsConsent || loading}
+            disabled={!smsConsent || loading || (captchaEnabled && !captchaToken)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full md:w-auto px-10 h-12 disabled:opacity-40"
           >
             {loading ? (
