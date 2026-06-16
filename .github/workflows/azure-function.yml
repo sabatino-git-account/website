@@ -46,9 +46,12 @@ jobs:
 
       - name: Deploy to Azure Functions
         run: |
-          RG=$(az functionapp show \
-            --name "${{ env.AZURE_FUNCTIONAPP_NAME }}" \
-            --query resourceGroup -o tsv)
+          RG=$(az functionapp list \
+            --query "[?name=='${{ env.AZURE_FUNCTIONAPP_NAME }}'].resourceGroup | [0]" -o tsv)
+          if [ -z "$RG" ]; then
+            echo "Function app not found: ${{ env.AZURE_FUNCTIONAPP_NAME }}"
+            exit 1
+          fi
           az functionapp deployment source config-zip \
             --resource-group "$RG" \
             --name "${{ env.AZURE_FUNCTIONAPP_NAME }}" \
