@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPhoneInput, isValidPhoneInput } from "@/lib/phone";
+import RecaptchaNotice from "@/components/shared/RecaptchaNotice";
 
 const CONTACT_API_URL = import.meta.env.VITE_CONTACT_API_URL;
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -29,6 +30,7 @@ function ContactFormFields() {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [smsConsent, setSmsConsent] = useState(false);
   const [form, setForm] = useState({
@@ -59,7 +61,9 @@ function ContactFormFields() {
         if (!executeRecaptcha) {
           throw new Error("Security verification is still loading. Please try again.");
         }
+        setVerifying(true);
         captchaToken = await executeRecaptcha("contact_form");
+        setVerifying(false);
       }
 
       const response = await fetch(CONTACT_API_URL, {
@@ -88,6 +92,7 @@ function ContactFormFields() {
     } catch (err) {
       setError(err.message || "Failed to send message. Please try again or call (617) 387-7466.");
     } finally {
+      setVerifying(false);
       setLoading(false);
     }
   };
@@ -230,6 +235,8 @@ function ContactFormFields() {
             />
           </div>
 
+          {captchaEnabled && <RecaptchaNotice verifying={verifying} />}
+
           <div className="rounded-xl bg-muted/50 border border-border/60 p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Checkbox
@@ -265,7 +272,7 @@ function ContactFormFields() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
+                {verifying ? "Verifying…" : "Sending..."}
               </>
             ) : (
               <>

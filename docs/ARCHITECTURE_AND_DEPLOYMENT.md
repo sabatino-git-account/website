@@ -40,7 +40,7 @@ flowchart LR
 - Reads API URL from `import.meta.env.VITE_CONTACT_API_URL` (baked in at **build time**).
 - Formats phone as `(xxx) xxx-xxxx` while typing.
 - Sends JSON: `name`, `email`, `phone`, `company`, `interest`, `message`, `smsConsent`, `captchaToken`.
-- Google reCAPTCHA v3 (invisible, runs on submit) when `VITE_RECAPTCHA_SITE_KEY` is set.
+- Google reCAPTCHA v3 (invisible on submit) with a visible **Security verification** notice when `VITE_RECAPTCHA_SITE_KEY` is set.
 - Hidden `_gotcha` field for basic bot filtering.
 - Requires SMS consent checkbox before submit.
 
@@ -48,7 +48,9 @@ flowchart LR
 
 - Route: `POST /api/contact` (and `OPTIONS` for CORS in code).
 - Validates required fields, email format, and phone format when provided.
-- Verifies reCAPTCHA token with Google when `RECAPTCHA_SECRET_KEY` is set.
+- Verifies reCAPTCHA token with Google when `RECAPTCHA_SECRET_KEY` is set (fail-closed in production; set `RECAPTCHA_OPTIONAL=true` for local dev only).
+- Validates reCAPTCHA hostname against `ALLOWED_ORIGIN` and v3 action `contact_form`.
+- Per-IP rate limit (default 5 requests / 15 minutes).
 - Reads SMTP settings from environment variables.
 - Sets `replyTo` to the submitter’s email so you can reply directly.
 

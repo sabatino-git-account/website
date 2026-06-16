@@ -1,32 +1,10 @@
 import { app } from '@azure/functions';
 import nodemailer from 'nodemailer';
+import { verifyRecaptcha } from '../lib/recaptcha.js';
+import { getClientIp, isRateLimited } from '../lib/rateLimit.js';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\(\d{3}\) \d{3}-\d{4}$/;
-
-async function verifyRecaptcha(token) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) return true;
-
-  if (!token) return false;
-
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ secret, response: token }),
-  });
-
-  const result = await response.json();
-  if (!result.success) return false;
-
-  // reCAPTCHA v3 returns score 0.0–1.0; v2 omits score
-  const minScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
-  if (typeof result.score === 'number') {
-    return result.score >= minScore;
-  }
-
-  return true;
-}
 
 function getAllowedOrigins() {
   const raw = process.env.ALLOWED_ORIGIN || 'https://www.sabatino-ins.com';
@@ -58,6 +36,10 @@ function jsonResponse(request, status, body) {
     },
     body: JSON.stringify(body),
   };
+}
+
+function sanitizeHeaderValue(value) {
+  return String(value).replace(/[\r\n]/g, ' ').trim().slice(0, 120);
 }
 
 function validatePayload(data) {
@@ -124,7 +106,9 @@ async function sendEmail(data) {
     auth: { user, pass },
   });
 
-  const subject = `Website inquiry: ${data.interest || 'General'} — ${data.name}`;
+  const safeName = sanitizeHeaderValue(data.name);
+  const safeInterest = sanitizeHeaderValue(data.interest || 'General');
+  const subject = `Website inquiry: ${safeInterest} — ${safeName}`;
 
   await transporter.sendMail({
     from: mailFrom,
@@ -148,6 +132,13 @@ app.http('contact', {
     }
 
     try {
+      const clientIp = getClientIp(request);
+      if (isRateLimited(clientIp)) {
+        return jsonResponse(request, 429, {
+          error: 'Too many requests. Please wait a few minutes and try again.',
+        });
+      }
+
       const data = await request.json();
       const validationError = validatePayload(data);
 
@@ -155,7 +146,8 @@ app.http('contact', {
         return jsonResponse(request, 400, { error: validationError });
       }
 
-      const captchaValid = await verifyRecaptcha(data.captchaToken);
+      const allowedOrigins = getAllowedOrigins();
+      const captchaValid = await verifyRecaptcha(data.captchaToken, allowedOrigins);
       if (!captchaValid) {
         return jsonResponse(request, 400, { error: 'CAPTCHA verification failed. Please try again.' });
       }
