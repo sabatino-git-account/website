@@ -36,6 +36,46 @@ Static files are output to `dist/`.
 
 Auth is not wired up yet. Login/register pages exist but are not routed. When you add a backend (e.g. Azure AD B2C, Auth0, or a custom API), implement the methods in `src/api/auth.js` and connect `src/lib/AuthContext.jsx`.
 
+## Contact form (SMTP2GO via Azure Functions)
+
+Form submissions are sent by **`sabatino-contact-api`** (Azure Function). SMTP credentials stay in Azure only — never in the React app.
+
+### Azure Function App environment variables
+
+In **sabatino-contact-api → Environment variables → App settings**, confirm these exist:
+
+| Name | Example |
+|------|---------|
+| `SMTP_HOST` | `mail.smtp2go.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | your SMTP2GO username |
+| `SMTP_PASSWORD` | your SMTP2GO password |
+| `MAIL_FROM` | verified sender in SMTP2GO |
+| `MAIL_TO` | `info@sabatino-ins.com` |
+| `ALLOWED_ORIGIN` | `https://www.sabatino-ins.com,https://sabatino-ins.com` |
+
+### GitHub (website build)
+
+Add a repository **variable** (Settings → Secrets and variables → Actions → Variables):
+
+- `VITE_CONTACT_API_URL` = `https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azurewebsites.net/api/contact`
+
+### GitHub (function deploy)
+
+Add a repository **secret**:
+
+- `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` — download from Function App → Overview → Get publish profile
+
+### Local testing
+
+```bash
+cp api/local.settings.json.example api/local.settings.json
+# edit SMTP values, then:
+cd api && npm install && npm start
+```
+
+In another terminal, copy `.env.example` to `.env.local` and run `npm run dev`.
+
 ## Deployment
 
 This is a static SPA. GitHub Actions builds the site and deploys the `dist/` folder to Azure.

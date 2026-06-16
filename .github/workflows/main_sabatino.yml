@@ -25,6 +25,8 @@ jobs:
           cache: npm
 
       - name: Install, build, and prepare static site
+        env:
+          VITE_CONTACT_API_URL: ${{ vars.VITE_CONTACT_API_URL }}
         run: |
           npm ci
           npm run build

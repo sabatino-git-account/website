@@ -5,8 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const CONTACT_API_URL = import.meta.env.VITE_CONTACT_API_URL;
 
 const interests = [
   "Auto Insurance",
@@ -22,20 +24,59 @@ const interests = [
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [smsConsent, setSmsConsent] = useState(false);
   const [form, setForm] = useState({
-    name: "", company: "", email: "", phone: "", interest: "", message: ""
+    name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: ""
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+
+    if (!CONTACT_API_URL) {
+      setError("Contact form is not configured yet. Please email info@sabatino-ins.com.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(CONTACT_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          company: form.company,
+          email: form.email,
+          phone: form.phone,
+          interest: form.interest,
+          message: form.message,
+          smsConsent,
+          _gotcha: form._gotcha,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to send message.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Failed to send message. Please try again or call (617) 387-7466.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {
     setSubmitted(false);
+    setError("");
     setSmsConsent(false);
-    setForm({ name: "", company: "", email: "", phone: "", interest: "", message: "" });
+    setForm({ name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: "" });
   };
 
   const handleChange = (field, value) => {
@@ -72,6 +113,23 @@ export default function ContactForm() {
           onSubmit={handleSubmit}
           className="space-y-5"
         >
+          <input
+            type="text"
+            name="_gotcha"
+            value={form._gotcha}
+            onChange={(e) => handleChange("_gotcha", e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            className="hidden"
+            aria-hidden="true"
+          />
+
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name *</Label>
@@ -144,7 +202,6 @@ export default function ContactForm() {
               onChange={(e) => handleChange("message", e.target.value)}
             />
           </div>
-          {/* SMS / TCPA Consent */}
           <div className="rounded-xl bg-muted/50 border border-border/60 p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Checkbox
@@ -166,11 +223,20 @@ export default function ContactForm() {
           <Button
             type="submit"
             size="lg"
-            disabled={!smsConsent}
+            disabled={!smsConsent || loading}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full md:w-auto px-10 h-12 disabled:opacity-40"
           >
-            <Send className="w-4 h-4 mr-2" />
-            Send Message
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4 mr-2" />
+                Send Message
+              </>
+            )}
           </Button>
         </motion.form>
       )}
