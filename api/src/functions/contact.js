@@ -17,7 +17,15 @@ async function verifyRecaptcha(token) {
   });
 
   const result = await response.json();
-  return result.success === true;
+  if (!result.success) return false;
+
+  // reCAPTCHA v3 returns score 0.0–1.0; v2 omits score
+  const minScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
+  if (typeof result.score === 'number') {
+    return result.score >= minScore;
+  }
+
+  return true;
 }
 
 function getAllowedOrigins() {

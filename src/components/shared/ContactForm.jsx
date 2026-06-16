@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
+import React, { useState } from "react";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,13 +25,12 @@ const interests = [
   "Other",
 ];
 
-export default function ContactForm() {
-  const recaptchaRef = useRef(null);
+function ContactFormFields() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [smsConsent, setSmsConsent] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
   const [form, setForm] = useState({
     name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: ""
   });
@@ -52,14 +51,17 @@ export default function ContactForm() {
       return;
     }
 
-    if (captchaEnabled && !captchaToken) {
-      setError("Please complete the CAPTCHA verification.");
-      return;
-    }
-
     setLoading(true);
 
     try {
+      let captchaToken = null;
+      if (captchaEnabled) {
+        if (!executeRecaptcha) {
+          throw new Error("Security verification is still loading. Please try again.");
+        }
+        captchaToken = await executeRecaptcha("contact_form");
+      }
+
       const response = await fetch(CONTACT_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,8 +87,6 @@ export default function ContactForm() {
       setSubmitted(true);
     } catch (err) {
       setError(err.message || "Failed to send message. Please try again or call (617) 387-7466.");
-      recaptchaRef.current?.reset();
-      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -96,8 +96,6 @@ export default function ContactForm() {
     setSubmitted(false);
     setError("");
     setSmsConsent(false);
-    setCaptchaToken(null);
-    recaptchaRef.current?.reset();
     setForm({ name: "", company: "", email: "", phone: "", interest: "", message: "", _gotcha: "" });
   };
 
@@ -232,18 +230,6 @@ export default function ContactForm() {
             />
           </div>
 
-          {captchaEnabled && (
-            <div className="space-y-2">
-              <Label>Verification *</Label>
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={setCaptchaToken}
-                onExpired={() => setCaptchaToken(null)}
-              />
-            </div>
-          )}
-
           <div className="rounded-xl bg-muted/50 border border-border/60 p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Checkbox
@@ -259,13 +245,21 @@ export default function ContactForm() {
             <p className="text-[11px] text-muted-foreground/70 pl-7">
               Your information is protected and will never be sold to third parties. View our{" "}
               <a href="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</a>.
+              {captchaEnabled && (
+                <>
+                  {" "}This site is protected by reCAPTCHA and the Google{" "}
+                  <a href="https://policies.google.com/privacy" className="underline hover:text-foreground transition-colors" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                  {" "}and{" "}
+                  <a href="https://policies.google.com/terms" className="underline hover:text-foreground transition-colors" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.
+                </>
+              )}
             </p>
           </div>
 
           <Button
             type="submit"
             size="lg"
-            disabled={!smsConsent || loading || (captchaEnabled && !captchaToken)}
+            disabled={!smsConsent || loading}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full md:w-auto px-10 h-12 disabled:opacity-40"
           >
             {loading ? (
@@ -283,5 +277,17 @@ export default function ContactForm() {
         </motion.form>
       )}
     </AnimatePresence>
+  );
+}
+
+export default function ContactForm() {
+  if (!RECAPTCHA_SITE_KEY) {
+    return <ContactFormFields />;
+  }
+
+  return (
+    <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+      <ContactFormFields />
+    </GoogleReCaptchaProvider>
   );
 }

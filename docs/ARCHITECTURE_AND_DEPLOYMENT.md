@@ -40,7 +40,7 @@ flowchart LR
 - Reads API URL from `import.meta.env.VITE_CONTACT_API_URL` (baked in at **build time**).
 - Formats phone as `(xxx) xxx-xxxx` while typing.
 - Sends JSON: `name`, `email`, `phone`, `company`, `interest`, `message`, `smsConsent`, `captchaToken`.
-- Google reCAPTCHA v2 checkbox when `VITE_RECAPTCHA_SITE_KEY` is set.
+- Google reCAPTCHA v3 (invisible, runs on submit) when `VITE_RECAPTCHA_SITE_KEY` is set.
 - Hidden `_gotcha` field for basic bot filtering.
 - Requires SMS consent checkbox before submit.
 
@@ -279,7 +279,7 @@ Default local function URL: `http://localhost:7071/api/contact`
 ## reCAPTCHA setup (bot protection)
 
 1. Go to [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin) → **Create**.
-2. Choose **reCAPTCHA v2** → **“I'm not a robot” Checkbox**.
+2. Choose **reCAPTCHA v3** (Score based).
 3. Domains: `www.sabatino-ins.com`, `sabatino-ins.com`, `localhost` (for local dev).
 4. Copy keys:
    - **Site key** → GitHub variable `VITE_RECAPTCHA_SITE_KEY` (rebuild website)
