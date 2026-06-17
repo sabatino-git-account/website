@@ -19,15 +19,28 @@ export default function ContactPage() {
         subheadline="Get in Touch"
         headline="We're Here to Help"
         description="Have questions about your insurance needs? Reach out to our team — we're just a phone call, email, or visit away."
-        compact
+        slim
       />
 
-      <section className="py-20 md:py-28 bg-background">
+      <section className="py-10 md:py-14 bg-background">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
-            {/* Contact info */}
-            <div className="lg:col-span-2">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">Contact Information</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
+            {/* Form — first on mobile, right column on desktop */}
+            <div className="lg:col-span-3 order-1 lg:order-2">
+              <div className="bg-card rounded-2xl border border-border/60 p-8 md:p-10 shadow-sm">
+                <h3 className="font-display text-xl font-semibold text-foreground mb-2">Send Us a Message</h3>
+                <p className="text-muted-foreground text-sm mb-8">
+                  Fill out the form and we'll get back to you within 1 business day.
+                </p>
+                <ContactForm />
+              </div>
+            </div>
+
+            {/* Contact info — below form on mobile, left column on desktop */}
+            <div className="lg:col-span-2 order-2 lg:order-1">
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-6">
+                Contact Information
+              </h2>
               <p className="text-muted-foreground leading-relaxed mb-10">
                 Visit us at our Everett office, give us a call, or send us a message. We also offer registry services and Saturday appointments.
               </p>
@@ -47,7 +60,12 @@ export default function ContactPage() {
                     <div>
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{d.label}</p>
                       {d.href ? (
-                        <a href={d.href} target={d.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:text-secondary transition-colors whitespace-pre-line">
+                        <a
+                          href={d.href}
+                          target={d.href.startsWith("http") ? "_blank" : undefined}
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-foreground hover:text-secondary transition-colors whitespace-pre-line"
+                        >
                           {d.value}
                         </a>
                       ) : (
@@ -58,7 +76,6 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              {/* Map placeholder */}
               <div className="mt-10 rounded-2xl overflow-hidden border border-border bg-muted/30 aspect-video flex items-center justify-center">
                 <iframe
                   title="Office Location"
@@ -67,15 +84,6 @@ export default function ContactPage() {
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
-              </div>
-            </div>
-
-            {/* Form */}
-            <div className="lg:col-span-3">
-              <div className="bg-card rounded-2xl border border-border/60 p-8 md:p-10 shadow-sm">
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">Send Us a Message</h3>
-                <p className="text-muted-foreground text-sm mb-8">Fill out the form and we'll get back to you within 1 business day.</p>
-                <ContactForm />
               </div>
             </div>
           </div>

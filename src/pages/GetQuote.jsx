@@ -1,8 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Home as HomeIcon, Building2, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Car, Home as HomeIcon, Building2 } from "lucide-react";
 import Hero from "@/components/shared/Hero";
 import SectionHeading from "@/components/shared/SectionHeading";
 import ContactForm from "@/components/shared/ContactForm";
@@ -40,18 +38,33 @@ export default function GetQuotePage() {
         subheadline="Get a Quote"
         headline="Get Your Free Insurance Quote"
         description="Tell us about your insurance needs and we'll connect you with the best coverage options from our 17+ carrier partners."
-        compact
+        slim
       />
 
-      {/* Quick Quote Types */}
-      <section className="py-20 md:py-28 bg-background">
+      {/* Form first — visible immediately when users click Get a Quote */}
+      <section className="py-10 md:py-14 bg-background">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="bg-card rounded-2xl border border-border/60 p-8 md:p-10 shadow-sm">
+            <h2 className="font-display text-2xl font-semibold text-foreground mb-2 text-center">
+              Request a Quote
+            </h2>
+            <p className="text-muted-foreground text-center mb-8">
+              Fill out the form below and one of our agents will prepare a personalized quote for you.
+            </p>
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
+      {/* Coverage types — secondary context below the form */}
+      <section className="py-14 md:py-20 bg-muted/30 border-t border-border/60">
         <div className="max-w-7xl mx-auto px-6">
           <SectionHeading
             label="Choose Your Coverage"
             title="What Would You Like to Insure?"
-            description="Select a category below or fill out our general quote request form."
+            description="Popular quote categories we help Massachusetts families and businesses with every day."
           />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {quoteTypes.map((q, i) => (
               <motion.div
                 key={q.title}
@@ -62,7 +75,11 @@ export default function GetQuotePage() {
                 className="group relative rounded-2xl overflow-hidden border border-border/60 hover:border-secondary/30 hover:shadow-2xl hover:shadow-secondary/5 transition-all duration-500 bg-card"
               >
                 <div className="aspect-[16/9] overflow-hidden">
-                  <img src={q.image} alt={q.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img
+                    src={q.image}
+                    alt={q.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-3">
@@ -75,15 +92,6 @@ export default function GetQuotePage() {
                 </div>
               </motion.div>
             ))}
-          </div>
-
-          {/* General Quote Form */}
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-card rounded-2xl border border-border/60 p-8 md:p-10 shadow-sm">
-              <h3 className="font-display text-2xl font-semibold text-foreground mb-2 text-center">Request a Quote</h3>
-              <p className="text-muted-foreground text-center mb-8">Fill out the form below and one of our agents will prepare a personalized quote for you.</p>
-              <ContactForm />
-            </div>
           </div>
         </div>
       </section>

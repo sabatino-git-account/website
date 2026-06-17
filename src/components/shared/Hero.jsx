@@ -15,9 +15,15 @@ export default function Hero({
   backgroundImage,
   overlay = true,
   compact = false,
+  slim = false,
 }) {
+  const sectionPadding = slim ? "py-10 md:py-14" : compact ? "py-20 md:py-28" : "py-24 md:py-36";
+  const titleSize = slim
+    ? "text-3xl md:text-4xl"
+    : "text-4xl md:text-5xl lg:text-6xl";
+
   return (
-    <section className={`relative overflow-hidden ${compact ? "py-20 md:py-28" : "py-24 md:py-36"}`}>
+    <section className={`relative overflow-hidden ${sectionPadding}`}>
       {/* Background image */}
       {backgroundImage && (
         <div className="absolute inset-0">
@@ -49,7 +55,7 @@ export default function Hero({
               {subheadline}
             </p>
           )}
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6">
+          <h1 className={`font-display ${titleSize} font-bold text-white leading-[1.1] mb-6`}>
             {headline}
           </h1>
           {description && (
