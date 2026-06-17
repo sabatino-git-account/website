@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "func start",
-    "build": "npm install --omit=dev"
+    "build": "npm install --omit=dev",
+    "test": "node --test"
   },
   "dependencies": {
     "@azure/functions": "^4.7.0",

@@ -409,7 +409,10 @@ Expected without CAPTCHA token (production): `400` with CAPTCHA error. With vali
 - SMTP credentials exist only in Azure Function settings and local `local.settings.json` (gitignored).
 - API is `authLevel: anonymous` — intended for public contact forms.
 - **reCAPTCHA v3:** fail-closed when secret missing in production; hostname + action + score validation in `api/src/lib/recaptcha.js`.
-- **Rate limiting:** per-IP in `api/src/lib/rateLimit.js` (best-effort on serverless; consider Azure Front Door for heavy traffic).
+- **Rate limiting:** per-IP in `api/src/lib/rateLimit.js`. Uses the platform-appended (rightmost) `X-Forwarded-For` entry so the source IP cannot be spoofed via a fake leftmost value, and caps tracked IPs to bound memory. Best-effort per-instance on serverless; consider Azure Front Door / API Management for global throttling.
+- **reCAPTCHA v3:** verified server-side with hostname, action (`contact_form`), and score checks; client IP forwarded to Google as `remoteip`.
+- **Teams live chat:** `environmentId` is public; restrict allowed embed domains to `www.sabatino-ins.com` / `sabatino-ins.com` in the Microsoft Teams / Customer Connect admin to prevent off-site chat spam.
+- **Tests:** `cd api && npm test` runs security regression tests (`api/test/`).
 - **Honeypot:** `_gotcha` field rejects basic bots.
 - **Email headers:** subject fields sanitized to prevent header injection.
 - `smsConsent` is required and stored in the email body for compliance visibility.

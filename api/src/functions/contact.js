@@ -147,7 +147,7 @@ app.http('contact', {
       }
 
       const allowedOrigins = getAllowedOrigins();
-      const captchaValid = await verifyRecaptcha(data.captchaToken, allowedOrigins);
+      const captchaValid = await verifyRecaptcha(data.captchaToken, allowedOrigins, clientIp);
       if (!captchaValid) {
         return jsonResponse(request, 400, { error: 'CAPTCHA verification failed. Please try again.' });
       }

@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 For AI assistants resuming work without chat history, see **[docs/AI_SESSION_CONTEXT.md](./docs/AI_SESSION_CONTEXT.md)**.
 
+## 2026-06-16 — Security fixes (contact API abuse controls)
+
+Addresses findings from a security review. Each fix is covered by automated tests in `api/test/` (`npm test` in `api/`, 16 passing).
+
+### Fixed
+- **IP spoofing in rate limiter** (`api/src/lib/rateLimit.js`) — `getClientIp` now parses the **rightmost** (platform-appended) `X-Forwarded-For` entry instead of the spoofable leftmost value, and strips ports (IPv4 + bracketed IPv6). Prevents per-IP rate-limit bypass and IP-targeted `429` DoS.
+- **Unbounded memory growth** (`api/src/lib/rateLimit.js`) — the in-memory bucket `Map` now evicts expired entries and enforces a hard cap (`RATE_LIMIT_MAX_TRACKED`, default 10000) with FIFO eviction, preventing memory exhaustion under IP-rotation floods.
+- **reCAPTCHA hardening** (`api/src/lib/recaptcha.js`) — forwards `remoteip` to Google’s siteverify and strictly requires action `contact_form` for v3 tokens (score path), in addition to existing hostname + score checks. (`api/src/functions/contact.js` passes the verified client IP.)
+
+### Added
+- **`api/test/`** — Node test-runner suites proving each fix; `test` script in `api/package.json`.
+- Function deploy zip now excludes `test/` and `local.settings.json`.
+
+### Operational (configure outside the repo)
+- **Microsoft Teams chat** — restrict allowed embed domains to `www.sabatino-ins.com` / `sabatino-ins.com` in the Teams / Customer Connect admin (the `environmentId` is public by design).
+- Consider Azure Front Door / API Management edge rate limiting for global throttling (in-function limit is per-instance defense-in-depth).
+
+
 ## 2026-06-16 — Microsoft Teams live chat + UI fixes
 
 ### Added
