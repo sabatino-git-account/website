@@ -18,7 +18,7 @@
 | **Node version** | 24 (`.nvmrc`, `package.json` engines) |
 | **Production domain** | `https://www.sabatino-ins.com` (also `sabatino-ins.com`) |
 
-This is a **marketing SPA** (not SSR). Base44 backend was fully removed. Auth is a stub only.
+Marketing SPA. Base44 removed. Auth is a stub only (login pages not routed).
 
 ---
 
@@ -26,9 +26,11 @@ This is a **marketing SPA** (not SSR). Base44 backend was fully removed. Auth is
 
 | Resource | Name | Role |
 |----------|------|------|
-| Web App | `sabatino` | Serves built static site from `dist/` |
+| Web App | `sabatino` | Serves `dist/` static site + Teams chat script |
 | Function App | `sabatino-contact-api` | `POST /api/contact` → SMTP2GO email |
-| Email provider | SMTP2GO | `mail.smtp2go.com:587` |
+| Email | SMTP2GO | `mail.smtp2go.com:587` |
+| Analytics | Google Analytics 4 | `G-7DW2Q54FRF` |
+| Live chat | Microsoft Teams Customer Connect | `environmentId` in `TeamsLiveChat.jsx` |
 
 ### URLs
 
@@ -36,199 +38,135 @@ This is a **marketing SPA** (not SSR). Base44 backend was fully removed. Auth is
 - **Function API:** `https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azurewebsites.net/api/contact`
 - **Function region:** Canada Central, Flex Consumption, Linux, Node 24
 
-### Web App startup command
-
-```
-npx -y serve -s /home/site/wwwroot -l $PORT --no-clipboard
-```
-
 ---
 
 ## Deployment workflows
 
-| Workflow file | Deploys | Trigger |
-|---------------|---------|---------|
-| `.github/workflows/main_sabatino.yml` | `dist/` → Web App `sabatino` | Every push to `main` |
-| `.github/workflows/main_sabatino-contact-api.yml` | `api/` zip → Function App | Push when `api/**` or workflow changes |
+| Workflow | Deploys | Trigger |
+|----------|---------|---------|
+| `main_sabatino.yml` | `dist/` → Web App `sabatino` | Every push to `main` |
+| `main_sabatino-contact-api.yml` | `api/` zip → Function App | Push when `api/**` or workflow changes |
 
-Both use **OIDC** (Azure Deployment Center). **Do not** use publish profiles.
-
-**Critical:** Function workflow must use `AZURE_FUNCTIONAPP_PACKAGE_PATH: 'api'`. Azure originally generated `.` (repo root) — that deploys the wrong project.
-
-**Removed:** `.github/workflows/azure-function.yml` (failed duplicate using wrong OIDC secrets).
+Both use **OIDC** from Azure Deployment Center. Function workflow **must** use `AZURE_FUNCTIONAPP_PACKAGE_PATH: 'api'`.
 
 ---
 
-## Configuration checklist
+## Configuration checklist (production)
 
-### ✅ Done (as of 2026-06-16)
+### ✅ Configured
 
-- [x] Website deployed to Azure with custom domain + SSL
-- [x] Contact API code in `api/` deployed via GitHub Actions
-- [x] SMTP2GO credentials in Function App environment variables
-- [x] `VITE_CONTACT_API_URL` GitHub variable set
-- [x] Function App **Portal CORS** allows `www` and apex domains (form works in browser)
-- [x] Phone auto-format `(xxx) xxx-xxxx` in `ContactForm`
-- [x] reCAPTCHA v2 + GA4 **code** implemented (see pending keys below)
+- [x] Website + custom domain + SSL
+- [x] Contact API deployed from `api/`
+- [x] SMTP2GO in Function App env vars
+- [x] `VITE_CONTACT_API_URL` (GitHub)
+- [x] Function Portal CORS (`www` + apex)
+- [x] `VITE_RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY` (reCAPTCHA **v3**)
+- [x] `VITE_GA_MEASUREMENT_ID` = `G-7DW2Q54FRF`
+- [x] Phone format `(xxx) xxx-xxxx`
+- [x] API security: rate limit, hostname/action/score checks, fail-closed CAPTCHA
+- [x] Microsoft Teams live chat (site-wide)
+- [x] reCAPTCHA badge bottom-left (avoids chat overlap)
 
-### ⏳ Pending user configuration (optional but recommended)
+### ⏳ Optional future
 
-| Setting | Where | Status |
-|---------|--------|--------|
-| `VITE_RECAPTCHA_SITE_KEY` | GitHub Variables | User must create at [reCAPTCHA Admin](https://www.google.com/recaptcha/admin) |
-| `RECAPTCHA_SECRET_KEY` | Function App env | Pairs with site key |
-| `VITE_GA_MEASUREMENT_ID` | GitHub Variables | User must create GA4 property |
-
-Until reCAPTCHA keys are set, form works without checkbox. Once `RECAPTCHA_SECRET_KEY` is in Azure, API enforces verification.
-
-After adding any `VITE_*` variable, **re-run website workflow** (values are baked in at build time).
+- Azure Front Door / API Management for stronger rate limiting
+- Real auth backend
 
 ---
 
-## Environment variables reference
+## Environment variables
 
-### GitHub Actions → Variables (website build)
+### GitHub Variables (website build — baked into `dist/`)
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_CONTACT_API_URL` | Contact API endpoint (required for form) |
-| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v2 site key (public) |
-| `VITE_GA_MEASUREMENT_ID` | GA4 measurement ID (`G-XXXXXXXXXX`) |
+| `VITE_CONTACT_API_URL` | Contact API endpoint |
+| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 site key (public) |
+| `VITE_GA_MEASUREMENT_ID` | `G-7DW2Q54FRF` |
 
-### Function App → App settings
+### Function App settings
 
 | Setting | Purpose |
 |---------|---------|
-| `SMTP_HOST` | `mail.smtp2go.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USER` | SMTP2GO username |
-| `SMTP_PASSWORD` | SMTP2GO password |
-| `MAIL_FROM` | Verified sender in SMTP2GO |
-| `MAIL_TO` | `info@sabatino-ins.com` |
+| `SMTP_*`, `MAIL_FROM`, `MAIL_TO` | Email delivery |
 | `ALLOWED_ORIGIN` | `https://www.sabatino-ins.com,https://sabatino-ins.com` |
-| `RECAPTCHA_SECRET_KEY` | reCAPTCHA secret (server-side) |
+| `RECAPTCHA_SECRET_KEY` | reCAPTCHA v3 secret (**required in prod**) |
+| `RECAPTCHA_OPTIONAL` | `true` local dev only — **never in Azure prod** |
+| `RECAPTCHA_MIN_SCORE` | Optional (default `0.5`) |
+| `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` | Optional rate limit tuning |
 
-### Function App → API → CORS (Portal)
+### Teams chat (in code, not env)
 
-Must include **both**:
+File: `src/components/chat/TeamsLiveChat.jsx`
 
-- `https://www.sabatino-ins.com`
-- `https://sabatino-ins.com`
-
-**Why both code + Portal CORS:** Azure host intercepts browser `OPTIONS` preflight before function code runs. `curl` works without Portal CORS; browsers do not.
+- `environmentId`: `b2e5815c-388f-e355-b74d-34ea7937fe1d`
+- `region`: `unitedstates`
 
 ---
 
 ## Key source files
 
-| File | Responsibility |
-|------|----------------|
-| `src/components/shared/ContactForm.jsx` | Contact + Get Quote form (phone format, reCAPTCHA, submit) |
-| `src/lib/phone.js` | `formatPhoneInput()` → `(xxx) xxx-xxxx` |
-| `src/lib/analytics.js` | GA4 init + `trackPageView()` |
-| `src/components/analytics/PageViewTracker.jsx` | Route-change pageview tracking |
-| `src/App.jsx` | Routes; mounts `PageViewTracker` |
-| `api/src/functions/contact.js` | HTTP handler: validate, reCAPTCHA verify, send email |
-| `api/local.settings.json.example` | Local function env template |
-| `.env.example` | Local frontend env template |
-| `docs/ARCHITECTURE_AND_DEPLOYMENT.md` | Full architecture + troubleshooting |
-| `CHANGELOG.md` | Dated change log |
-
-### Pages using ContactForm
-
-- `src/pages/Contact.jsx`
-- `src/pages/GetQuote.jsx`
-
-### Images / branding
-
-- Logo in navbar/footer: `public/images/saba_icon.png` + text “Sabatino / Insurance Agency”
-- Favicon: `public/images/saba_logo.png`
-- Untracked locally (not used in site): `logo_transparent.png`
+| File | Role |
+|------|------|
+| `src/components/shared/ContactForm.jsx` | Contact + Get Quote form |
+| `src/components/shared/RecaptchaNotice.jsx` | Visible security notice (v3 is invisible) |
+| `src/components/chat/TeamsLiveChat.jsx` | Microsoft Teams live chat |
+| `src/components/layout/SiteLayout.jsx` | Navbar + Footer + Teams chat |
+| `src/lib/phone.js` | Phone formatter |
+| `src/lib/analytics.js` | GA4 |
+| `src/components/analytics/PageViewTracker.jsx` | SPA pageview tracking |
+| `src/index.css` | reCAPTCHA badge → bottom-left |
+| `api/src/functions/contact.js` | Contact API handler |
+| `api/src/lib/recaptcha.js` | CAPTCHA verify (hostname, action, score) |
+| `api/src/lib/rateLimit.js` | Per-IP rate limit |
 
 ---
 
-## Contact form data flow
+## Feature summary
 
-```
-Browser (www.sabatino-ins.com)
-  → OPTIONS preflight (Azure Portal CORS must allow origin)
-  → POST JSON to VITE_CONTACT_API_URL
-  → api/src/functions/contact.js
-      → validate fields + phone pattern + smsConsent
-      → verifyRecaptcha(captchaToken) if RECAPTCHA_SECRET_KEY set
-      → nodemailer → SMTP2GO
-  → { "ok": true }
-```
-
-### POST body fields
-
-`name`, `email`, `phone`, `company`, `interest`, `message`, `smsConsent`, `captchaToken`, `_gotcha` (honeypot)
-
-### Phone validation
-
-- Frontend: formats while typing via `formatPhoneInput`
-- Backend: if provided, must match `(xxx) xxx-xxxx` (10 digits)
+| Feature | How it works |
+|---------|----------------|
+| **Contact form** | POST to Azure Function → SMTP2GO → `info@sabatino-ins.com` |
+| **Phone** | Auto-formats to `(xxx) xxx-xxxx` |
+| **reCAPTCHA v3** | Invisible on submit; Security notice on form; badge bottom-left |
+| **GA4** | Tracks route changes; dashboard at analytics.google.com |
+| **Teams chat** | Bubble bottom-right on all pages; messages to Teams |
+| **Rate limit** | 5 req / 15 min / IP on contact API |
 
 ---
 
 ## Issues solved (do not re-debug)
 
-| Symptom | Root cause | Fix |
-|---------|------------|-----|
-| `/api/contact` 404 | Function never deployed | Deployment Center + `api/` workflow |
-| Deploy succeeds, still 404 | Workflow deployed repo root | `AZURE_FUNCTIONAPP_PACKAGE_PATH: 'api'` |
-| Publish profile 401 | Bad/expired profile | OIDC via Deployment Center |
-| “Resource doesn't exist” on function deploy | Website OIDC secrets used for function | Separate secrets per app |
-| Form “Load failed” (Safari) | Missing Portal CORS | Function App → API → CORS |
-| curl works, browser fails | Same — CORS preflight blocked | Portal CORS + `ALLOWED_ORIGIN` |
-| 3 emails “Test / test@example.com” | Agent `curl` verification tests | Not a bug |
+| Symptom | Fix |
+|---------|-----|
+| `/api/contact` 404 | Deploy from `api/` folder |
+| Form “Load failed” | Function App Portal CORS |
+| “Invalid key type” reCAPTCHA | Switched v2 widget → v3 |
+| Badge overlaps chat | `index.css` badge bottom-left |
+| curl works, browser fails | Portal CORS |
+| Test emails “Test / test@example.com” | Agent verification curls |
 
 ---
 
 ## Local development
 
 ```bash
-# Website
-npm install && npm run dev          # http://localhost:5173
+npm install && npm run dev                    # http://localhost:5173
 
-# API (separate terminal)
 cp api/local.settings.json.example api/local.settings.json
-cd api && npm install && npm start  # http://localhost:7071/api/contact
+# Set RECAPTCHA_OPTIONAL=true for local API testing without keys
+cd api && npm install && npm start          # http://localhost:7071/api/contact
 
-# Frontend env (optional)
-cp .env.example .env.local
-# VITE_CONTACT_API_URL=http://localhost:7071/api/contact
+cp .env.example .env.local                  # optional VITE_* overrides
 ```
-
----
-
-## Commands for verification
-
-```bash
-# API health (no CORS involved)
-curl -X POST "https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azurewebsites.net/api/contact" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test","email":"test@example.com","message":"Hello","smsConsent":true}'
-
-# Check baked API URL in live site JS
-curl -sL "https://www.sabatino-ins.com/" | grep -o 'assets/index-[^"]*\.js' | head -1
-```
-
----
-
-## Future / not implemented
-
-- Real auth (`src/api/auth.js` stub; login pages exist but unrouted)
-- Public on-site visitor counter widget (GA4 dashboard used instead)
-- Rate limiting on contact API
 
 ---
 
 ## Instructions for AI assistants
 
-1. **Read this file first** when resuming work on deploy, contact form, CORS, or Azure.
-2. **Read `docs/ARCHITECTURE_AND_DEPLOYMENT.md`** for troubleshooting steps and diagrams.
-3. **Never commit** `.env.local`, `api/local.settings.json`, or SMTP/recaptcha secrets.
-4. **Website env vars** (`VITE_*`) require rebuild + redeploy; **Function env vars** apply without redeploy.
-5. **Two workflows** — website changes go to `main_sabatino.yml`; API changes to `main_sabatino-contact-api.yml`.
-6. **User prefers** concise changes; match existing code style; only commit when asked.
+1. Read this file first; use `ARCHITECTURE_AND_DEPLOYMENT.md` for troubleshooting.
+2. Never commit secrets (`.env.local`, `local.settings.json`).
+3. `VITE_*` changes need website rebuild; Function env vars apply immediately.
+4. reCAPTCHA is **v3** (not v2 checkbox) — do not re-add v2 widget without new v2 keys.
+5. Teams chat + reCAPTCHA badge both use screen corners — badge is bottom-left by design.
+6. Only commit when user asks.

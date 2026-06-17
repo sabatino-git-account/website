@@ -4,28 +4,71 @@ All notable changes to this project are documented here.
 
 For AI assistants resuming work without chat history, see **[docs/AI_SESSION_CONTEXT.md](./docs/AI_SESSION_CONTEXT.md)**.
 
+## 2026-06-16 — Microsoft Teams live chat + UI fixes
+
+### Added
+- **`src/components/chat/TeamsLiveChat.jsx`** — Microsoft Customer Connect / Teams live chat widget (site-wide)
+- Loaded from `SiteLayout.jsx` on every page; messages route to Microsoft Teams
+
+### Changed
+- **`src/index.css`** — reCAPTCHA v3 badge moved to **bottom-left** so it does not overlap the Teams chat bubble (bottom-right)
+
+### Configuration (Teams chat — in code, not env vars)
+| Setting | Value |
+|---------|--------|
+| Script | `https://res.public.onecdn.static.microsoft/customerconnect/v1/7dttl/init.js` |
+| `environmentId` | `b2e5815c-388f-e355-b74d-34ea7937fe1d` |
+| `region` | `unitedstates` |
+
+---
+
+## 2026-06-16 — Contact API security hardening
+
+### Added
+- **`api/src/lib/recaptcha.js`** — reCAPTCHA verification with hostname, v3 action, and score checks
+- **`api/src/lib/rateLimit.js`** — per-IP rate limiting (default 5 requests / 15 min)
+- **`src/components/shared/RecaptchaNotice.jsx`** — visible “Security verification” panel on contact forms
+
+### Changed
+- **`api/src/functions/contact.js`** — uses recaptcha + rateLimit libs; sanitizes email subject headers; returns `429` when rate limited
+- **`api/local.settings.json.example`** — added `RECAPTCHA_OPTIONAL=true` for local dev (do **not** set in production Azure)
+- Fail-closed CAPTCHA when `RECAPTCHA_SECRET_KEY` is missing (unless `RECAPTCHA_OPTIONAL=true`)
+
+---
+
+## 2026-06-16 — reCAPTCHA v3 fix (invalid key type)
+
+### Changed
+- Switched from **reCAPTCHA v2 checkbox** to **reCAPTCHA v3** (`react-google-recaptcha-v3`) — Google keys were v3; v2 widget showed “Invalid key type”
+- Verification runs invisibly on submit; button shows “Verifying…” during check
+- Backend validates v3 score (min 0.5), action `contact_form`, and hostname from `ALLOWED_ORIGIN`
+
+### Removed
+- **`react-google-recaptcha`** (v2) dependency — replaced by `react-google-recaptcha-v3`
+
+---
+
 ## 2026-06-16 — Contact form hardening + analytics + documentation
 
 ### Added
 - **Phone formatting** — `src/lib/phone.js`; `ContactForm` formats input as `(xxx) xxx-xxxx`
-- **Google reCAPTCHA v2** — checkbox on Contact/Get Quote forms when `VITE_RECAPTCHA_SITE_KEY` is set; server verification in `api/src/functions/contact.js` via `RECAPTCHA_SECRET_KEY`
+- **Google reCAPTCHA** — bot protection on Contact/Get Quote forms (see v3 fix entry above)
 - **Google Analytics 4** — `src/lib/analytics.js`, `src/components/analytics/PageViewTracker.jsx`; tracks route changes when `VITE_GA_MEASUREMENT_ID` is set
 - **`.env.example`** — local frontend env template
 - **`docs/ARCHITECTURE_AND_DEPLOYMENT.md`** — full Azure/contact-form architecture, CORS explanation, troubleshooting
 - **`docs/AI_SESSION_CONTEXT.md`** — condensed reference for future AI sessions
-- **`react-google-recaptcha`** npm dependency
 
 ### Changed
-- **`src/components/shared/ContactForm.jsx`** — phone mask, reCAPTCHA, `captchaToken` in POST body
-- **`api/src/functions/contact.js`** — phone pattern validation, `verifyRecaptcha()`
+- **`src/components/shared/ContactForm.jsx`** — phone mask, reCAPTCHA token on submit, `captchaToken` in POST body
 - **`src/App.jsx`** — mounts `PageViewTracker`
 - **`.github/workflows/main_sabatino.yml`** — passes `VITE_RECAPTCHA_SITE_KEY`, `VITE_GA_MEASUREMENT_ID` at build time
 - **`api/local.settings.json.example`** — added `RECAPTCHA_SECRET_KEY`
 - **`README.md`** — links to architecture docs; updated contact-form config list
 
-### Pending user setup
-- Create reCAPTCHA v2 keys → `VITE_RECAPTCHA_SITE_KEY` (GitHub) + `RECAPTCHA_SECRET_KEY` (Azure)
-- Create GA4 property → `VITE_GA_MEASUREMENT_ID` (GitHub), then redeploy website
+### Configured in production (GitHub / Azure)
+- `VITE_RECAPTCHA_SITE_KEY` — GitHub variable
+- `RECAPTCHA_SECRET_KEY` — Azure Function App setting
+- `VITE_GA_MEASUREMENT_ID` = `G-7DW2Q54FRF` — GitHub variable
 
 ---
 
@@ -61,6 +104,8 @@ For AI assistants resuming work without chat history, see **[docs/AI_SESSION_CON
 - Test emails from `curl` during verification (not user submissions)
 
 ---
+
+## 2026-06-13 — Self-hosted images (full Base44 removal)
 
 ### Added
 - **`public/images/`** — 28 images downloaded locally (logo, hero, services, carrier logos)
@@ -159,6 +204,7 @@ GitHub (monorepo: React site + api/)
     │
     ├─ push main ─► main_sabatino.yml ─► npm build (VITE_* vars) ─► dist/ ─► Web App sabatino
     │                                                                      └─► www.sabatino-ins.com
+    │                                                                           └─► Teams live chat (Microsoft Customer Connect)
     │
     └─ push api/** ─► main_sabatino-contact-api.yml ─► zip api/ ─► Function App sabatino-contact-api
                                                                               └─► POST /api/contact ─► SMTP2GO
@@ -179,5 +225,7 @@ GitHub (monorepo: React site + api/)
 - [x] Self-host images (moved to `public/images/`)
 - [x] Connect contact form to email/API backend (Azure Function + SMTP2GO)
 - [x] Custom domain setup — `www.sabatino-ins.com` live
-- [ ] Configure reCAPTCHA keys (`VITE_RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY`)
-- [ ] Configure GA4 (`VITE_GA_MEASUREMENT_ID`)
+- [x] Configure reCAPTCHA keys (`VITE_RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY`)
+- [x] Configure GA4 (`VITE_GA_MEASUREMENT_ID` = `G-7DW2Q54FRF`)
+- [x] Microsoft Teams live chat widget
+- [ ] Azure Front Door / API Management rate limits (optional upgrade from in-function rate limit)

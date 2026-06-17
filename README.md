@@ -52,6 +52,11 @@ Form submissions go to Azure Function **`sabatino-contact-api`**, which sends em
 
 Deploy workflows: `main_sabatino.yml` (website) and `main_sabatino-contact-api.yml` (API). Both use OIDC from Azure Deployment Center.
 
+**Also live on the site:**
+- **Google Analytics 4** — visitor tracking (`VITE_GA_MEASUREMENT_ID`)
+- **reCAPTCHA v3** — invisible bot protection on contact forms
+- **Microsoft Teams live chat** — chat bubble on every page (`TeamsLiveChat.jsx`)
+
 Details, diagrams, troubleshooting, and lessons learned: **[docs/ARCHITECTURE_AND_DEPLOYMENT.md](./docs/ARCHITECTURE_AND_DEPLOYMENT.md)**.
 
 ### Local testing

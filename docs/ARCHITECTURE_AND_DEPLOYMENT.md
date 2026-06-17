@@ -58,20 +58,47 @@ flowchart LR
 
 - `src/lib/analytics.js` loads GA4 when `VITE_GA_MEASUREMENT_ID` is set.
 - `PageViewTracker` in `App.jsx` records a page view on every route change.
+- Production measurement ID: `G-7DW2Q54FRF` (GitHub variable).
 - View traffic in [Google Analytics](https://analytics.google.com/) (not shown on the public site).
+
+### Microsoft Teams live chat
+
+- `src/components/chat/TeamsLiveChat.jsx` loads Microsoft Customer Connect script site-wide via `SiteLayout.jsx`.
+- Chat bubble appears bottom-right; conversations route to your Microsoft Teams channel.
+- Configuration is in code (not env vars):
+
+| Attribute | Value |
+|-----------|--------|
+| Script | `https://res.public.onecdn.static.microsoft/customerconnect/v1/7dttl/init.js` |
+| `environmentId` | `b2e5815c-388f-e355-b74d-34ea7937fe1d` |
+| `region` | `unitedstates` |
+
+To change chat settings, edit `TeamsLiveChat.jsx` or obtain a new embed snippet from Microsoft Teams Admin / Customer Connect.
+
+### UI: reCAPTCHA badge vs Teams chat
+
+Both widgets default to the bottom-right corner. **`src/index.css`** moves the Google reCAPTCHA v3 badge to the **bottom-left** on Contact/Get Quote pages so it does not overlap the Teams chat bubble. Required disclosure text remains in the contact form consent area.
 
 ## Repository layout
 
 ```
 saba-shield-pro/
 ├── src/
-│   ├── components/shared/ContactForm.jsx
-│   ├── components/analytics/PageViewTracker.jsx
+│   ├── components/
+│   │   ├── shared/
+│   │   │   ├── ContactForm.jsx
+│   │   │   └── RecaptchaNotice.jsx
+│   │   ├── analytics/PageViewTracker.jsx
+│   │   ├── chat/TeamsLiveChat.jsx
+│   │   └── layout/SiteLayout.jsx
 │   └── lib/
-│       ├── phone.js              # (xxx) xxx-xxxx formatter
-│       └── analytics.js          # GA4
+│       ├── phone.js
+│       └── analytics.js
 ├── api/
 │   ├── src/functions/contact.js
+│   ├── src/lib/
+│   │   ├── recaptcha.js
+│   │   └── rateLimit.js
 │   ├── src/index.js
 │   ├── host.json
 │   └── package.json
@@ -82,7 +109,7 @@ saba-shield-pro/
 ├── .env.example
 └── docs/
     ├── ARCHITECTURE_AND_DEPLOYMENT.md
-    └── AI_SESSION_CONTEXT.md     # AI quick reference
+    └── AI_SESSION_CONTEXT.md
 ```
 
 ## Azure resources
@@ -119,7 +146,11 @@ Serves static files from `dist/` after GitHub Actions build.
 | `MAIL_FROM` | Verified sender in SMTP2GO (must be allowed to send) |
 | `MAIL_TO` | Inbox that receives inquiries (`info@sabatino-ins.com`) |
 | `ALLOWED_ORIGIN` | Comma-separated origins for **code-level** CORS on POST responses |
-| `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA v2 **secret** key (server-side verification) |
+| `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA v3 **secret** key (server-side verification) |
+| `RECAPTCHA_MIN_SCORE` | Optional v3 score threshold (default `0.5`) |
+| `RECAPTCHA_OPTIONAL` | Set `true` **local dev only** — skips CAPTCHA when secret missing |
+| `RATE_LIMIT_MAX` | Optional max submissions per IP (default `5`) |
+| `RATE_LIMIT_WINDOW_MS` | Optional rate limit window (default `900000` = 15 min) |
 
 Example `ALLOWED_ORIGIN`:
 
@@ -167,8 +198,8 @@ Two workflows deploy independently. Both use **OIDC** (no publish profile): Azur
 | Name | Value |
 |------|--------|
 | `VITE_CONTACT_API_URL` | `https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azurewebsites.net/api/contact` |
-| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v2 **site** key (public) |
-| `VITE_GA_MEASUREMENT_ID` | GA4 measurement ID (e.g. `G-XXXXXXXXXX`) |
+| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 **site** key (public) |
+| `VITE_GA_MEASUREMENT_ID` | GA4 measurement ID (`G-7DW2Q54FRF`) |
 
 Vite inlines these at build time. If you change any value, update the variable and **re-run the website workflow** so `dist/` is rebuilt.
 
@@ -254,6 +285,18 @@ The site originally used Base44 for assets and backend. We removed the SDK, self
 
 **Not a bug** — expected during verification.
 
+### 8. reCAPTCHA “Invalid key type” on form
+
+**Cause:** Google keys were **v3** but the site used a **v2 checkbox** widget.
+
+**Fix:** Switched to `react-google-recaptcha-v3` (invisible verification on submit).
+
+### 9. reCAPTCHA badge overlapping Teams chat
+
+**Cause:** Both widgets default to bottom-right corner.
+
+**Fix:** CSS in `src/index.css` moves reCAPTCHA badge to bottom-left.
+
 ## Local development
 
 ### Website only
@@ -288,7 +331,7 @@ Default local function URL: `http://localhost:7071/api/contact`
    - **Secret key** → Function App setting `RECAPTCHA_SECRET_KEY` (no redeploy needed)
 5. Redeploy the website workflow after adding the site key.
 
-The checkbox appears on Contact and Get Quote forms. Backend rejects submissions when the secret is set but verification fails.
+reCAPTCHA v3 runs **invisibly** when the user clicks Send Message — there is no checkbox. A **Security verification** notice appears on the form; the small Google badge shows bottom-left (not bottom-right, to avoid overlapping Teams chat). Backend rejects submissions when verification fails.
 
 ## Google Analytics setup (visitor counts)
 
@@ -311,6 +354,7 @@ Analytics runs in the background — there is no public visitor counter on the s
 | SMTP / recipient | Update Function App environment variables (no redeploy needed for env-only changes) |
 | Enable CAPTCHA | Set `VITE_RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY`, redeploy website |
 | Enable analytics | Set `VITE_GA_MEASUREMENT_ID`, redeploy website |
+| Change Teams chat | Edit `src/components/chat/TeamsLiveChat.jsx` |
 
 ## Troubleshooting
 
@@ -340,6 +384,16 @@ Check **Function App → Log stream** or Application Insights. Common causes:
 
 Almost always **CORS** (Portal origins missing). See [CORS section](#cors-why-two-layers-and-why-portal-matters).
 
+### API returns 429
+
+Rate limit exceeded (default 5 submissions per IP per 15 minutes). Wait and retry.
+
+### CAPTCHA verification failed
+
+- Confirm `RECAPTCHA_SECRET_KEY` in Azure matches the site key’s reCAPTCHA v3 entry
+- Do **not** set `RECAPTCHA_OPTIONAL=true` in production Azure
+- Token must come from production hostname (`www.sabatino-ins.com` or `sabatino-ins.com`)
+
 ### Quick API test (no browser CORS)
 
 ```bash
@@ -348,20 +402,30 @@ curl -X POST "https://sabatino-contact-api-bza0cqhqbtd8fgcu.canadacentral-01.azu
   -d '{"name":"Test","email":"you@example.com","message":"Hello","smsConsent":true}'
 ```
 
-Expected: `{"ok":true}` and an email to `MAIL_TO`.
+Expected without CAPTCHA token (production): `400` with CAPTCHA error. With valid browser submission, `{ "ok": true }` and email to `MAIL_TO`.
 
 ## Security notes
 
 - SMTP credentials exist only in Azure Function settings and local `local.settings.json` (gitignored).
-- API is `authLevel: anonymous` — intended for public contact forms. Validation + honeypot reduce abuse; consider rate limiting or Azure API Management if traffic grows.
+- API is `authLevel: anonymous` — intended for public contact forms.
+- **reCAPTCHA v3:** fail-closed when secret missing in production; hostname + action + score validation in `api/src/lib/recaptcha.js`.
+- **Rate limiting:** per-IP in `api/src/lib/rateLimit.js` (best-effort on serverless; consider Azure Front Door for heavy traffic).
+- **Honeypot:** `_gotcha` field rejects basic bots.
+- **Email headers:** subject fields sanitized to prevent header injection.
 - `smsConsent` is required and stored in the email body for compliance visibility.
+- Teams chat script loads from Microsoft CDN only; `environmentId` is public (not a secret).
 
 ## Related files
 
 - Frontend form: `src/components/shared/ContactForm.jsx`
+- reCAPTCHA notice: `src/components/shared/RecaptchaNotice.jsx`
 - Phone formatter: `src/lib/phone.js`
 - Analytics: `src/lib/analytics.js`, `src/components/analytics/PageViewTracker.jsx`
+- Teams live chat: `src/components/chat/TeamsLiveChat.jsx`
 - API handler: `api/src/functions/contact.js`
+- reCAPTCHA verify: `api/src/lib/recaptcha.js`
+- Rate limit: `api/src/lib/rateLimit.js`
+- Badge/chat CSS: `src/index.css`
 - Website workflow: `.github/workflows/main_sabatino.yml`
 - Function workflow: `.github/workflows/main_sabatino-contact-api.yml`
 - AI quick reference: [AI_SESSION_CONTEXT.md](./AI_SESSION_CONTEXT.md)
