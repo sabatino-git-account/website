@@ -15,7 +15,7 @@ import StatsSection from "@/components/shared/StatsSection";
 import CTASection from "@/components/shared/CTASection";
 import { images } from "@/lib/images";
 
-const heroImg = images.hero;
+const heroImg = images.frontBackground;
 const autoImg = images.auto;
 const homeImg = images.home;
 const businessImg = images.business;
